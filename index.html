@@ -1071,18 +1071,19 @@ d3.json("permafrost_timeseries.json").then(data => {
 });
 
 d3.json("sea_level_bay_of_bengal.json").then(data => {
-  drawChart("#chart-sealevel", "Bay of Bengal: Sea Level Anomaly 1993–2024", data, {
+  drawChart("#chart-sealevel", "Bay of Bengal: Satellite data show an increase of about 3.77 mm per year", data, {
     width: 700, height: 450,
     valueKey: "sla_mm", unit: " mm", decimals: 1, valueLabel: "Anomaly",
-    subtitle: "Satellite data show an increase of about 3.77 mm per year",
+    subtitle: "Sea Level Anomaly 1993–2024",
     color: "#6bb5e8"
   });
 });
 
 d3.json("precipitation_dhaka.json").then(data => {
-  drawChart("#chart-precip", "Dhaka: Annual Precipitation 1990–2023", data, {
+  drawChart("#chart-precip", "Dhaka: Annual rainfall has been rising sharply since 2015", data, {
     width: 700, height: 450,
     valueKey: "precip_mm", unit: " mm", decimals: 0, valueLabel: "Precipitation",
+    subtitle: "Annual Precipitation 1990–2023",
     color: "#6bb5e8"
   });
 });

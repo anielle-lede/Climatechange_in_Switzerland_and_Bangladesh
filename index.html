@@ -929,6 +929,28 @@ function drawChart(containerId, stationName, series, opts = {}) {
     .attr("y1", y(0)).attr("y2", y(0))
     .attr("stroke", "#999").attr("stroke-dasharray", "3,3");
 
+  if (opts.highlightZeroCrossing) {
+    const crossing = series.find(d => d[valueKey] >= 0);
+    if (crossing) {
+      const cx = x(crossing.year);
+      svg.append("line")
+        .attr("x1", cx).attr("x2", cx)
+        .attr("y1", margin.top).attr("y2", height - margin.bottom)
+        .attr("stroke", "#e63946")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "4,2");
+
+      svg.append("text")
+        .attr("x", cx)
+        .attr("y", margin.top + 14)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#e63946")
+        .attr("font-size", "0.85rem")
+        .attr("font-weight", "bold")
+        .text(crossing.year);
+    }
+  }
+
   // Split into segments where years aren't consecutive
   const segments = [];
   let current = [series[0]];
@@ -1019,10 +1041,11 @@ d3.json("permafrost_timeseries.json").then(data => {
   const mainStation = "Schilthorn";
 
   // Main chart, large, as before
-  drawChart("#chart", "Schilthorn: Permafrost Ground Temperature 1999–2024", data[mainStation], {
+  drawChart("#chart", "Schilthorn: Since 2022, the temperature has been above 0°C — the permafrost is thawing", data[mainStation], {
     width: 700, height: 450,
     valueLabel: "Temperature",
-    subtitle: "Since 2022, the temperature has been above 0°C — the permafrost is thawing"
+    subtitle: "Permafrost Ground Temperature 1999–2024",
+    highlightZeroCrossing: true
   });
 
   // All other stations as small charts in the grid

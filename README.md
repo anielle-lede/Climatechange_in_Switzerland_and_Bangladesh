@@ -18,4 +18,6 @@ Full methodology and sources are documented in a box at the bottom of the page i
 - [Scrollama](https://github.com/russellgoldenberg/scrollama) for scroll-driven map steps
 - Data processing in Python (pandas, geopandas)
 
+## Inspiration
 
+https://www.nytimes.com/interactive/2020/12/17/world/asia/india-pollution-inequality.html

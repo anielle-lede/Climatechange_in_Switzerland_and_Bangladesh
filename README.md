@@ -18,10 +18,4 @@ Full methodology and sources are documented in a box at the bottom of the page i
 - [Scrollama](https://github.com/russellgoldenberg/scrollama) for scroll-driven map steps
 - Data processing in Python (pandas, geopandas)
 
-## Running locally
 
-```
-python3 -m http.server
-```
-
-Then open `http://localhost:8000` in a browser.

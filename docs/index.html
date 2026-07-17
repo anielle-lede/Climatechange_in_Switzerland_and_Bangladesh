@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>One Degree more</title>
+
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #0a0a0a;
+      color: #f0ede8;
+    }
+#hero {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#hero-videos {
+  display: flex;
+  height: 100%;
+  gap: 4px;
+  padding: 4rem 6rem;
+  background: #0a0a0a;
+}
+
+.hero-side {
+  position: relative;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.hero-side video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+
+.hero-label {
+  position: absolute;
+  bottom: 6rem;
+  left: 2rem;
+  z-index: 2;
+}
+
+.hero-label .country {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #6bb5e8;
+}
+
+.hero-label .country.ch {
+  color: #e8a44a;
+}
+
+.hero-label p {
+  font-size: 1.4rem;
+  color: #f0ede8;
+  margin-top: 0.3rem;
+}
+
+#hero-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 3;
+  width: 100%;
+  padding: 1rem;
+}
+
+#hero-title h1 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+.byline {
+  max-width: 680px;
+  margin: 1.5rem auto 0;
+  padding: 0 2rem;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #999;
+  letter-spacing: 0.03em;
+}
+
+.ch { color: #e8a44a; }
+.bd { color: #6bb5e8; }
+
+    #hero .subtitle {
+      margin-top: 2rem;
+      font-size: 1.1rem;
+      color: #999;
+      max-width: 600px;
+      line-height: 1.7;
+    }
+
+  
+    #map-section h2 {
+      font-size: 1.6rem;
+      font-weight: normal;
+      margin-bottom: 0.5rem;
+    }
+    #intro-text {
+       max-width: 680px;
+       margin: 6rem auto;
+        padding: 0 2rem;
+        font-size: 1.15rem;
+        line-height: 1.85;
+        color: #d0cdc8;
+    }
+
+      #permafrost-intro {
+    max-width: 680px;
+    margin: 6rem auto;
+    padding: 0 2rem;
+    font-size: 1.15rem;
+    line-height: 1.85;
+    color: #d0cdc8;
+  }
+
+    #map-section .map-intro {
+      color: #999;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .mapboxgl-popup-content {
+  color: #000;
+  font-family: 'Georgia', serif;
+  font-size: 0.9rem;
+  padding: 1rem;
+}
+
+#map-scrolly {
+  position: relative;
+  pointer-events: none;
+}
+
+#map {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: all;
+}
+
+#map-steps {
+  position: relative;
+  z-index: 10;
+  margin-top: -100vh;
+  pointer-events: none;
+}
+
+.map-step {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+  pointer-events: none;
+}
+.map-step:first-child {
+  min-height: 200vh;
+}
+
+.step-box {
+  pointer-events: all;
+  background: rgba(10, 10, 10, 0.88);
+  border: 1px solid #222;
+  border-left: 3px solid #e8a44a;
+  padding: 2rem;
+  max-width: 380px;
+  margin-left: 4vw;
+}
+
+.step-box h2, .step-box h3 {
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: #e8a44a;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.step-box p {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #ccc;
+}
+
+.top3-step h3 {
+  font-size: 1.6rem;
+  font-weight: normal;
+  color: #e8a44a;
+  margin-bottom: 1rem;
+}
+
+.top3-step p {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #ccc;
+}
+
+.map-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(10,10,10,0.92) 100%);
+}
+
+#legend, #legend-bd {
+  position: absolute;
+  bottom: 2rem;
+  right: 1rem;
+  z-index: 20;
+  background: rgba(10,10,10,0.85);
+  border: 1px solid #333;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+#bangladesh-intro {
+  max-width: 680px;
+  margin: 6rem auto;
+  padding: 0 2rem;
+  font-size: 1.15rem;
+  line-height: 1.85;
+  color: #d0cdc8;
+}
+
+#map-bd-section {
+  position: relative;
+  height: 180vh;
+}
+
+#map-bd {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+}
+
+#bangladesh-charts {
+  max-width: 1400px;
+  margin: 6rem auto;
+  padding: 0 2rem;
+}
+
+.chart-row {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.chart-col {
+  flex: 1;
+  min-width: 320px;
+}
+
+.legend-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #777;
+  margin-bottom: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.legend-item span {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #444;
+  flex-shrink: 0;
+}
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);  /* 4 auf einer Linie */
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+@media (max-width: 900px) {
+  .mini-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.mini-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+#chart svg,
+#chart-sealevel svg,
+#chart-precip svg {
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.photo-section {
+  max-width: 1100px;
+  margin: 4rem auto;
+  padding: 0 2rem;
+}
+
+.photo-section img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+.photo-section figcaption {
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.photo-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 4rem auto;
+  padding: 0 2rem;
+}
+
+.photo-row figure {
+  width: 100%;
+}
+
+.photo-row img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+.photo-row figcaption {
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+#methodology {
+  max-width: 800px;
+  margin: 6rem auto 4rem;
+  padding: 2rem;
+  background: rgba(10, 10, 10, 0.88);
+  border: 1px solid #222;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #ccc;
+}
+
+#methodology h3 {
+  font-weight: normal;
+  color: #e8a44a;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+#methodology h4 {
+  font-weight: normal;
+  color: #f0ede8;
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+}
+
+#methodology p {
+  margin: 0;
+}
+</style>
+<script src="https://unpkg.com/scrollama"></script>
+</head>
+
+
+
+<body>
+<section id="hero">
+  <div id="hero-videos">
+    <div class="hero-side">
+      <video autoplay muted loop playsinline>
+        <source src="blatten.mp4" type="video/mp4">
+      </video>
+      <div class="hero-label">
+        <span class="country ch">Switzerland</span>        <p>Rockfalls and glacier loss </p>
+      </div>
+    </div>
+    <div class="hero-side">
+      <video autoplay muted loop playsinline>
+        <source src="bangladesh.mov" type="video/mp4">
+      </video>
+      <div class="hero-label">
+        <span class="country">Bangladesh</span>
+        <p>Flooding and land loss</p>
+      </div>
+    </div>
+  </div>
+  <div id="hero-title">
+      <h1>What one degree looks in <span class="ch">Switzerland</span><br>and in <span class="bd"> Bangladesh</span></h1>
+  </div>
+</section>
+
+<p class="byline">Written by Anielle Peterhans</p>
+
+<section id="intro-text">
+  <p>One degree sounds like nothing.
+
+Whether it's 18 or 19 degrees outside, most people barely notice.
+
+For our planet, that one degree makes an enormous difference.
+
+In <span class="ch">Switzerland</span>, glaciers and permafrost are melting.
+
+In <span class="bd"> Bangladesh</span>, rivers overflow their banks and seawater keeps pushing further inland.
+
+The same warming. Two completely different consequences. Two completely different countries.</p></section>
+
+
+<section id="intro-text">
+<p>First, to <span class="ch">Switzerland</span>: cities are naturally getting warmer too, with more heat days and tropical nights. But climate change is most visible high up in the mountains — that's where it has the greatest impact on people.
+  The Alps are changing visibly.
+
+Glaciers retreat further every year.
+
+They store water, shape landscapes, and draw millions of tourists.
+
+But they're losing ice faster and faster. </p>
+</section>
+
+<section id="map-scrolly">
+
+  <div id="map">
+    <div class="map-vignette"></div>
+    <div id="legend">
+    <p class="legend-title">Volume loss (km³)</p>
+    <div class="legend-item"><span style="background:#08306b"></span> &gt; −0.5</div>
+    <div class="legend-item"><span style="background:#2171b5"></span> −0.5 to −0.1</div>
+    <div class="legend-item"><span style="background:#6baed6"></span> −0.1 to −0.01</div>
+    <div class="legend-item"><span style="background:#c6dbef"></span> −0.01 to 0</div>
+    <div class="legend-item"><span style="background:#ffffff"></span> no data</div>
+    </div>
+  </div>
+
+  <div id="map-steps">
+
+    <div class="map-step">
+      <div class="step-box">
+        <h2><span class="ch">Swiss</span> Glaciers — Volume Loss Since 1973</h2>
+        <p class="map-intro">Click on a glacier for details.</p>
+      </div>
+    </div>
+
+    <div class="map-step top3-step" data-center="8.020,46.503" data-zoom="11">
+      <div class="step-box">
+        <h3>Aletschgletscher</h3>
+        <p>With a volume loss of <strong>−1.9 km³</strong>, the Gorner Glacier is the most severely affected Swiss glacier. The lost mass is roughly equivalent to half the volume of Lake Zurich.</p>
+      </div>
+    </div>
+
+    <div class="map-step top3-step" data-center="7.824,45.951" data-zoom="11">
+      <div class="step-box">
+        <h3>Gornergletscher</h3>
+        <p>The Gornergletscher lost <strong>−0.73 km³</strong> — a dramatic decline for one of the region's large valley glaciers.</p>
+      </div>
+    </div>
+
+    <div class="map-step top3-step" data-center="8.163,46.566" data-zoom="11">
+      <div class="step-box">
+        <h3>Unteraargletscher</h3>
+        <p>The Unteraargletscher lost <strong>−0.5 km³</strong>.</p>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<section id="intro-text">
+  <p>
+Anyone hiking the Aletsch Glacier today sees the change with their own eyes.
+Trails have had to be relocated. Viewpoints now sit far above the ice. Mountain guides say the landscape changes almost every year.</p>
+</section>
+
+
+
+<div class="photo-row">
+  <figure>
+    <img src="Aletschgletscher.JPG" alt="Aletsch Glacier">
+    <figcaption>Credit: Anielle Peterhans</figcaption>
+  </figure>
+  <figure>
+    <img src="Aletschgletscher2.jpg" alt="Aletsch Glacier">
+    <figcaption>Credit: Anielle Peterhans</figcaption>
+  </figure>
+</div>
+
+<section id="permafrost-intro">
+  <p> Also: The Alps' frozen glue is melting. Permafrost is ground that stays frozen year-round.
+
+It holds rock together like a natural glue. When it thaws, mountains lose their stability.
+At the Schilthorn, for instance, the temperature has been above 0°C since 2022. The mountain is thawing. Other mountains with monitoring stations show similar results.
+  </p> </section>
+
+
+<section> 
+  <div id="chart"></div>
+  <div id="tooltip" style="position:absolute; opacity:0; background:rgba(10,10,10,0.9); border:1px solid #e8a44a; color:#f0ede8; padding:0.5rem 0.8rem; font-size:0.85rem; pointer-events:none; border-radius:4px; z-index:100;"></div>
+  <p style="font-size:0.85rem;color:#777;max-width:700px;margin:0.5rem auto 0;">
+    Source: PERMOS monitoring station Schilthorn. Dashed lines mark gaps in measurement (2001–2002, 2011).
+  </p>
+
+  <h3 style="margin-top:4rem; font-weight:normal; color:#e8a44a;">All Monitoring Stations Compared</h3>
+  <div id="mini-charts" class="mini-grid"></div>
+</section>
+
+<section id="permafrost-intro">
+  <p> The consequences? We saw it last year in Blatten. For a long time, Blatten was considered a safe mountain village.
+
+That changed in spring 2025. Millions of cubic meters of rock and ice crashed into the valley.
+Geologists had been watching the unstable mountain for weeks. Residents were evacuated in time — the village was destroyed, but no one died.
+Hundreds of people lost their homes. Images of it went around the world.
+  </p>
+</section>
+
+<figure class="photo-section">
+  <img src="blatten_danach.png" alt="Rockslide in Blatten">
+  <figcaption>Credit: AFP</figcaption>
+</figure>
+
+<section id="permafrost-intro">
+  <p> Blatten is being rebuilt.
+The federal government and canton are providing millions. Residents are meant to be able to return.
+<span class="ch">Switzerland</span> can afford it.  </p> </section>
+
+<section id="bangladesh-intro">
+  <p>It's a completely different story in <span class="bd"> Bangladesh</span>. <span class="bd"> Bangladesh</span> is one of the countries suffering most severely from the effects of climate change.
+
+The country is flat. More than 170 million people live on an area only about three times the size of <span class="ch">Switzerland</span>.
+
+Many live just a few meters above sea level.
+
+The government tries to help. But Bangladesh is one of the poorest countries in the world — its means are nowhere near Switzerland's.</p> </section>
+
+<section id="map-bd-section">
+  <div id="map-bd">
+    <div class="map-vignette"></div>
+    <div id="legend-bd">
+      <p class="legend-title">Flood Risk</p>
+      <div class="legend-item"><span style="background:#bd0026"></span> High risk</div>
+      <div class="legend-item"><span style="background:#fd8d3c"></span> Medium risk</div>
+      <div class="legend-item"><span style="background:#fed976"></span> Low risk</div>
+      <div class="legend-item"><span style="background:#ffffff"></span> Not at risk</div>
+      <p style="font-size:0.7rem;color:#666;margin-top:0.5rem;">Click on an area for the exact risk type (river/flash flood/storm surge)</p>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="bangladesh-charts">
+  <section id="bangladesh-intro">
+    <p> During the monsoon, flooding has been part of life for centuries.
+
+Many families are prepared for it.
+
+Normally, the water recedes after a few days or weeks. But the floods are becoming more extreme, more often. </p>
+  </section>
+
+  <div class="chart-row">
+    <div class="chart-col">
+      <div id="chart-sealevel"></div>
+      <p style="font-size:0.85rem;color:#777;margin-top:0.5rem;">
+        Source: NOAA Laboratory for Satellite Altimetry, Bay of Bengal. Values are anomalies (deviation from the reference level), not absolute sea level.
+      </p>
+    </div>
+    <div class="chart-col">
+      <div id="chart-precip"></div>
+      <p style="font-size:0.85rem;color:#777;margin-top:0.5rem;">
+        Source: NASA POWER, precipitation in Dhaka.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="bangladesh-intro">
+  <p>
+2017 is no outlier in the data. That year, one of the worst floods in decades hit the country.
+Millions of people lost their homes. Fields were destroyed. Thousands of villages remained underwater for weeks.
+</p></section>
+
+
+<div class="photo-row">
+  <figure>
+    <img src="bangladesh-2017.jpeg" alt="Flooding in Bangladesh, 2017">
+    <figcaption>Credit: AFP 2017</figcaption>
+  </figure>
+
+<section id="bangladesh-intro">
+  <p>
+Many families left their homes for good. Some moved to Dhaka. Today, Dhaka is growing faster than almost any other major city in the world.
+
+Many people come from the countryside. Some are looking for work. Others simply no longer have a home.
+</p></section>
+
+  <figure>
+    <img src="bangladesch2020.png" alt="Flooding in Bangladesh, 2020">
+    <figcaption>Credit: AFP 2020 </figcaption>
+  </figure>
+</div>
+
+<section id="bangladesh-intro">
+  <p>
+One degree sounds like nothing. But this one degree changes landscapes. It changes cities.
+It changes lives. <span class="ch">Switzerland</span> and <span class="bd"> Bangladesh</span> are thousands of kilometres apart.
+Yet both are living through the same warming. The difference is not whether they are affected. The planet is warming for everyone.
+But not everyone pays the same price. </p></section>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYW5pcGV0MTIzIiwiYSI6ImNtcmdmNDhqazFjb2EyeW9pd3E4cW1oeGsifQ.ooZgpp2EbRRK9rAJRKjKFA';
+
+  const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/dark-v11',
+  center: [8.2, 46.8],
+  zoom: 7.5,
+  pitch: 40,
+  scrollZoom: false
+});
+
+  map.on('load', () => {
+
+    map.setMaxBounds([
+  [5.9, 45.8],  // Southwest corner (Lon, Lat)
+  [10.5, 47.8]  // Northeast corner (Lon, Lat)
+]);
+
+  map.addSource('glaciers', {
+      type: 'geojson',
+      data: 'glaciers_shapes.geojson'
+    });
+
+    map.addLayer({
+      id: 'glaciers-fill',
+      type: 'fill',
+      source: 'glaciers',
+      paint: {
+        'fill-color': [
+          'interpolate', ['linear'],
+          ['coalesce', ['get', 'dV'], 0],
+          -2.0, '#08306b',
+          -0.5, '#2171b5',
+          -0.1, '#6baed6',
+          -0.01, '#c6dbef',
+          0, '#ffffff'
+        ],
+        'fill-opacity': 0.85
+      }
+    });
+
+    map.addLayer({
+      id: 'glaciers-outline',
+      type: 'line',
+      source: 'glaciers',
+      paint: {
+        'line-color': '#ffffff',
+        'line-width': 0.5,
+        'line-opacity': 0.4
+      }
+    });
+
+    map.on('click', 'glaciers-fill', (e) => {
+      const props = e.features[0].properties;
+      new mapboxgl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <strong>${props.name || 'Unknown'}</strong><br>
+          Area: ${parseFloat(props.area_km2).toFixed(2)} km²<br>
+          Volume loss: ${props.dV ? parseFloat(props.dV).toFixed(4) + ' km³' : 'no data'}
+        `)
+        .addTo(map);
+    });
+
+    map.on('mouseenter', 'glaciers-fill', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'glaciers-fill', () => {
+      map.getCanvas().style.cursor = '';
+    });
+
+    // Swiss national border, thick and white, so the country stays recognizable
+    map.addSource('switzerland-border', {
+      type: 'geojson',
+      data: 'switzerland_border.geojson'
+    });
+
+    map.addLayer({
+      id: 'switzerland-border-line',
+      type: 'line',
+      source: 'switzerland-border',
+      paint: {
+        'line-color': '#ffffff',
+        'line-width': 2.5,
+        'line-opacity': 0.9
+      }
+    });
+
+  });
+
+    // Mini scrollytelling for the top 3 glaciers
+  const scroller = scrollama();
+
+  scroller.setup({
+  step: '.top3-step',
+  offset: 0.5
+}).onStepEnter(({ element }) => {
+
+  const center = element.dataset.center.split(',').map(Number);
+  const zoom = parseFloat(element.dataset.zoom);
+
+  map.flyTo({
+    center: center,
+    zoom: zoom,
+    pitch: 60,
+    bearing: -20,
+    duration: 2500,
+    essential: true
+  });
+});
+
+// Second map: Bangladesh flood risk
+const mapBD = new mapboxgl.Map({
+  container: 'map-bd',
+  style: 'mapbox://styles/mapbox/dark-v11',
+  center: [90.3563, 23.6850],
+  zoom: 6.2,
+  pitch: 0,
+  scrollZoom: false
+});
+
+mapBD.addControl(new mapboxgl.NavigationControl());
+
+mapBD.on('load', () => {
+  mapBD.setMaxBounds([
+    [87.5, 20.3],
+    [93.0, 26.7]
+  ]);
+
+  mapBD.addSource('floods', {
+    type: 'geojson',
+    data: 'flood_risk.geojson'
+  });
+
+  mapBD.addLayer({
+    id: 'floods-fill',
+    type: 'fill',
+    source: 'floods',
+    paint: {
+      'fill-color': [
+        'match', ['get', 'FLOODCAT'],
+        1, '#bd0026',  // severe (river)
+        4, '#bd0026',  // severe (flash flood)
+        7, '#bd0026',  // severe (storm surge)
+        2, '#fd8d3c',  // moderate (river)
+        5, '#fd8d3c',  // moderate (flash flood)
+        8, '#fd8d3c',  // moderate (storm surge)
+        3, '#fed976',  // low (river)
+        6, '#fed976',  // low (flash flood)
+        'rgba(255,255,255,0.05)'
+      ],
+      'fill-opacity': [
+        'match', ['get', 'FLOODCAT'],
+        0, 0.05,
+        0.75
+      ]
+    }
+  });
+
+  mapBD.addLayer({
+    id: 'floods-outline',
+    type: 'line',
+    source: 'floods',
+    paint: {
+      'line-color': '#ffffff',
+      'line-width': 0.3,
+      'line-opacity': 0.15
+    }
+  });
+
+  mapBD.on('click', 'floods-fill', (e) => {
+    const props = e.features[0].properties;
+    new mapboxgl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(`
+        <strong>${props.DISTNAME || 'Unknown'}</strong><br>
+        ${props.FLOODCAT_L || 'No category'}
+      `)
+      .addTo(mapBD);
+  });
+
+  mapBD.on('mouseenter', 'floods-fill', () => {
+    mapBD.getCanvas().style.cursor = 'pointer';
+  });
+  mapBD.on('mouseleave', 'floods-fill', () => {
+    mapBD.getCanvas().style.cursor = '';
+  });
+
+  // Bangladesh national border, thick and white, so the country stays recognizable
+  mapBD.addSource('bangladesh-border', {
+    type: 'geojson',
+    data: 'bangladesh_border.geojson'
+  });
+
+  mapBD.addLayer({
+    id: 'bangladesh-border-line',
+    type: 'line',
+    source: 'bangladesh-border',
+    paint: {
+      'line-color': '#ffffff',
+      'line-width': 2.5,
+      'line-opacity': 0.9
+    }
+  });
+
+  // Label "Bay of Bengal" in the water south of the coast
+  mapBD.addSource('bay-label', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [90.0, 20.6] },
+        properties: { name: 'Bay of Bengal' }
+      }]
+    }
+  });
+
+  mapBD.addLayer({
+    id: 'bay-label-text',
+    type: 'symbol',
+    source: 'bay-label',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Open Sans Italic', 'Arial Unicode MS Regular'],
+      'text-size': 14,
+      'text-letter-spacing': 0.05
+    },
+    paint: {
+      'text-color': '#6bb5e8',
+      'text-halo-color': '#0a0a0a',
+      'text-halo-width': 1.5
+    }
+  });
+});
+</script>
+
+<script>
+function drawChart(containerId, stationName, series, opts = {}) {
+  const width = opts.width || 700;
+  const height = opts.height || 450;
+  const margin = opts.margin || {top: 60, right: 20, bottom: 40, left: 50};
+  const animate = opts.animate !== false;
+  const valueKey = opts.valueKey || "temp";        
+  const unit = opts.unit || "°C";                  
+  const decimals = opts.decimals ?? 3;
+  const color = opts.color || "#e8a44a";
+
+  const x = d3.scaleLinear()
+    .domain(d3.extent(series, d => d.year))
+    .range([margin.left, width - margin.right]);
+
+  const valueExtent = d3.extent(series, d => d[valueKey]);   // instead of tempExtent
+  const y = d3.scaleLinear()
+    .domain([Math.min(0, valueExtent[0]), Math.max(0, valueExtent[1])])
+    .nice()
+    .range([height - margin.bottom, margin.top]);
+
+  const line = d3.line().x(d => x(d.year)).y(d => y(d[valueKey]));
+  
+  // viewBox instead of fixed pixel size -> chart scales automatically with the grid column
+  const svg = d3.select(containerId)
+    .append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`);
+
+  svg.append("text")
+    .attr("x", width / 2).attr("y", opts.titleY || 20)
+    .attr("text-anchor", "middle")
+    .attr("font-size", opts.titleSize || "1rem")
+    .attr("fill", "#f0ede8")
+    .text(stationName);
+
+  if (opts.subtitle) {
+    svg.append("text")
+      .attr("x", width / 2).attr("y", (opts.titleY || 20) + 20)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "0.8rem").attr("fill", "#999")
+      .text(opts.subtitle);
+  }
+
+  svg.append("line")
+    .attr("x1", margin.left).attr("x2", width - margin.right)
+    .attr("y1", y(0)).attr("y2", y(0))
+    .attr("stroke", "#999").attr("stroke-dasharray", "3,3");
+
+  if (opts.highlightZeroCrossing) {
+    const crossing = series.find(d => d[valueKey] >= 0);
+    if (crossing) {
+      const cx = x(crossing.year);
+      svg.append("line")
+        .attr("x1", cx).attr("x2", cx)
+        .attr("y1", margin.top).attr("y2", height - margin.bottom)
+        .attr("stroke", "#e63946")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "4,2");
+
+      svg.append("text")
+        .attr("x", cx)
+        .attr("y", margin.top + 14)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#e63946")
+        .attr("font-size", "0.85rem")
+        .attr("font-weight", "bold")
+        .text(crossing.year);
+    }
+  }
+
+  // Split into segments where years aren't consecutive
+  const segments = [];
+  let current = [series[0]];
+  for (let i = 1; i < series.length; i++) {
+    if (series[i].year - series[i - 1].year === 1) current.push(series[i]);
+    else { segments.push(current); current = [series[i]]; }
+  }
+  segments.push(current);
+
+  const paths = segments.map(seg =>
+    svg.append("path").datum(seg).attr("fill", "none")
+      .attr("stroke", color).attr("stroke-width", opts.strokeWidth || 2)
+      .attr("d", line)
+  );
+
+  if (animate) {
+    paths.forEach(p => {
+      const len = p.node().getTotalLength();
+      p.attr("stroke-dasharray", len).attr("stroke-dashoffset", len);
+    });
+  }
+
+  const gapLines = [];
+  for (let i = 0; i < segments.length - 1; i++) {
+    const last = segments[i][segments[i].length - 1];
+    const next = segments[i + 1][0];
+    gapLines.push(
+      svg.append("line")
+        .attr("x1", x(last.year)).attr("y1", y(last[valueKey]))
+        .attr("x2", x(next.year)).attr("y2", y(next[valueKey]))
+        .attr("stroke", color).attr("stroke-width", opts.strokeWidth || 2)
+        .attr("stroke-dasharray", "5,3")
+        .style("opacity", animate ? 0 : 1)
+    );
+  }
+
+  svg.append("g")
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(opts.xTicks || 4).tickFormat(d3.format("d")))
+    .attr("color", "#999").attr("font-size", opts.axisFontSize || "0.7rem");
+
+  svg.append("g")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(opts.yTicks || 4))
+    .attr("color", "#999").attr("font-size", opts.axisFontSize || "0.7rem");
+
+  const circles = svg.selectAll("circle")
+    .data(series).enter().append("circle")
+    .attr("cx", d => x(d.year)).attr("cy", d => y(d[valueKey]))
+    .attr("r", opts.pointRadius || 3)
+    .attr("fill", color)
+    .style("opacity", animate ? 0 : 1)
+    .on("mouseover", (event, d) => {
+  d3.select("#tooltip").style("opacity", 1)
+    .html(`${stationName}<br>Year: ${d.year}<br>${opts.valueLabel || "Value"}: ${d[valueKey].toFixed(decimals)}${unit}`);
+})
+    .on("mousemove", (event) => {
+      d3.select("#tooltip")
+        .style("left", (event.pageX + 12) + "px")
+        .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", () => {
+      d3.select("#tooltip").style("opacity", 0);
+    });
+
+  if (animate) {
+    const target = document.querySelector(containerId);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          paths.forEach((p, i) => {
+            p.transition().delay(i * 500).duration(500).ease(d3.easeLinear)
+              .attr("stroke-dashoffset", 0);
+          });
+          gapLines.forEach((g, i) => {
+            g.transition().delay((i + 1) * 500).duration(300).style("opacity", 1);
+          });
+          circles.transition().delay(paths.length * 500).duration(300).style("opacity", 1);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    observer.observe(target);
+  }
+}
+
+d3.json("permafrost_timeseries.json").then(data => {
+  const mainStation = "Schilthorn";
+
+  // Main chart, large, as before
+  drawChart("#chart", "Schilthorn: Since 2022, the temperature has been above 0°C — the permafrost is thawing", data[mainStation], {
+    width: 700, height: 450,
+    valueLabel: "Temperature",
+    subtitle: "Permafrost Ground Temperature 1999–2024",
+    highlightZeroCrossing: true
+  });
+
+  // All other stations as small charts in the grid
+  const grid = d3.select("#mini-charts");
+  Object.keys(data).forEach(station => {
+  if (station === mainStation) return;
+  const safeId = station.replace(/[^a-zA-Z0-9]/g, "-"); // spaces/accents -> "-"
+
+  grid.append("div")
+    .attr("class", "mini-chart")
+    .attr("id", `chart-${safeId}`);
+
+  drawChart(`#chart-${safeId}`, station, data[station], {
+    width: 220, height: 160,
+    margin: {top: 30, right: 10, bottom: 25, left: 35},
+    titleSize: "0.75rem", titleY: 14,
+    axisFontSize: "0.55rem", xTicks: 3, yTicks: 3,
+    strokeWidth: 1.5, pointRadius: 2,
+    valueLabel: "Temperature"
+  });
+});
+
+});
+
+d3.json("sea_level_bay_of_bengal.json").then(data => {
+  drawChart("#chart-sealevel", "Bay of Bengal: Satellite data show an increase of about 3.77 mm per year", data, {
+    width: 700, height: 450,
+    valueKey: "sla_mm", unit: " mm", decimals: 1, valueLabel: "Anomaly",
+    subtitle: "Sea Level Anomaly 1993–2024",
+    color: "#6bb5e8"
+  });
+});
+
+d3.json("precipitation_dhaka.json").then(data => {
+  drawChart("#chart-precip", "Dhaka: Annual rainfall has been rising sharply since 2015", data, {
+    width: 700, height: 450,
+    valueKey: "precip_mm", unit: " mm", decimals: 0, valueLabel: "Precipitation",
+    subtitle: "Annual Precipitation 1990–2023",
+    color: "#6bb5e8"
+  });
+});
+</script>
+
+
+<section id="methodology">
+  <h4>Methodology & Sources</h4>
+
+  <p>Glacier volume loss from the Swiss Glacier Inventory (GLAMOS/SGI). Permafrost ground temperatures from the PERMOS monitoring network, filtered to ~10m depth (the standard reference depth in permafrost research), averaged per site and year.</p>
+
+  <p>Flood risk from a hazard map by the Bangladesh Agricultural Research Council (BARC/SPARRSO, via the Humanitarian Data Exchange). Sea level anomaly from satellite data by the NOAA Laboratory for Satellite Altimetry (Bay of Bengal, since 1993). Precipitation from NASA POWER satellite data for Dhaka.</p>
+
+  <p>All raw data was cleaned in Python (pandas/geopandas): tables were merged, filtered to reference depths or complete years, aggregated into annual values, and, for precipitation, converted from daily to annual totals. Missing measurement years are shown in the charts as dashed lines, not hidden.</p>
+
+  <p>Maps built with Mapbox GL JS (including national borders, scroll behavior, and zoom controls), time series charts built with D3.js (scroll-triggered animation, interactive tooltips, data gaps shown as dashed lines).</p>
+</section>
+
+</body>
+</html>
